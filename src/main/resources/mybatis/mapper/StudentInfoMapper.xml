@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.StudentInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.StudentInfo" >
+    <id column="studentId" property="studentId" jdbcType="INTEGER" />
+    <result column="studentName" property="studentName" jdbcType="VARCHAR" />
+    <result column="studentAccount" property="studentAccount" jdbcType="VARCHAR" />
+    <result column="studentPwd" property="studentPwd" jdbcType="VARCHAR" />
+    <result column="salt" property="salt" jdbcType="VARCHAR" />
+    <!-- 班级 -->
+    <association property="classInfo" javaType="com.qhit.pojo.ClassInfo">
+      <id column="classId" property="classId"/>
+      <result column="className" property="className"/>
+    </association>
+    <!-- 年级 -->
+    <association property="grade" javaType="com.qhit.pojo.GradeInfo">
+      <id column="gradeId" property="gradeId"/>
+      <result column="gradeName" property="gradeName"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    studentId, studentName, studentAccount, studentPwd, classId, salt
+  </sql>
+
+  <!--根据学生名 获取学生信息-->
+  <select id="getStudentByName" resultType="com.qhit.pojo.StudentInfo">
+    select <include refid="Base_Column_List"></include>
+    from studentinfo where studentAccount = #{0}
+  </select>
+
+  <select id="getStudentTotal" resultType="java.lang.Integer">
+    select count(studentId) from studentinfo
+  </select>
+  <select id="getStudentList" parameterType="com.qhit.pojo.StudentInfo" resultMap="BaseResultMap">
+    SELECT a.*,b.className, c.gradeName FROM studentinfo a
+    INNER JOIN classinfo b ON a.classId=b.classId
+    INNER JOIN gradeinfo c ON b.gradeId=c.gradeId
+    order by a.studentId asc
+    <where>
+      <if test="studentId != null">
+        studentId=#{studentId}
+      </if>
+      <if test="classInfo != null">
+        <if test="classInfo.classId != null">
+          b.classId=#{classInfo.classId}
+        </if>
+      </if>
+      <if test="grade != null">
+        <if test="grade.gradeId != null">
+          c.gradeId=#{grade.gradeId}
+        </if>
+      </if>
+    </where>
+  </select>
+
+  <select id="getStudentById" parameterType="int" resultMap="BaseResultMap">
+    SELECT a.*,b.className,c.gradeId,c.gradeName FROM studentinfo a
+    INNER JOIN classinfo b ON a.classId=b.classId
+    INNER JOIN gradeinfo c ON b.gradeId=c.gradeId
+    WHERE a.studentId=#{studentId}
+  </select>
+
+  <update id="updateStudent" parameterType="com.qhit.pojo.StudentInfo">
+    UPDATE studentinfo SET
+    studentName=#{studentName}, studentAccount=#{studentAccount}, studentPwd=#{studentPwd}, classId=#{classId}
+    WHERE studentId=#{studentId}
+  </update>
+
+  <delete id="deleteStudent" parameterType="int">
+    DELETE FROM studentinfo WHERE studentId=#{studentId}
+  </delete>
+
+  <insert id="insertStudent" parameterType="com.qhit.pojo.StudentInfo">
+    INSERT INTO studentinfo VALUES(NULL, #{studentName}, #{studentAccount}, #{studentPwd}, #{classId}, #{salt})
+  </insert>
+
+  <select id="getStudentByAccountAndPwd" parameterType="java.lang.String" resultMap="BaseResultMap">
+    SELECT a.*,b.className,c.gradeId,c.gradeName FROM studentinfo a
+    INNER JOIN classinfo b ON a.classId=b.classId
+    INNER JOIN gradeinfo c ON b.gradeId=c.gradeId
+    WHERE studentAccount=#{studentAccount}
+  </select>
+
+  <!-- 学生重置密码 -->
+  <update id="isResetPwdWithStudent" parameterType="com.qhit.pojo.StudentInfo">
+    UPDATE studentinfo SET
+    studentPwd=#{studentPwd}
+    WHERE studentId=#{studentId}
+  </update>
+
+  <!-- 获取指定班级下的所有学生 -->
+  <select id="getStudentsByClassId" parameterType="int" resultType="com.qhit.pojo.StudentInfo">
+    SELECT studentId,studentName FROM studentinfo WHERE classId=#{classId}
+  </select>
+
+  <select id="selectCountAll" resultType="com.qhit.pojo.ClassInfo" parameterType="int">
+    select count(s.studentId) as classId,c.className from studentinfo s,gradeinfo g,classinfo c
+    <where>
+    s.classId=c.classId and g.gradeId=c.gradeId
+      <if test="gradeId!=0">
+        and g.gradeId=#{gradeId}
+      </if>
+    </where>
+    GROUP BY c.className
+  </select>
+</mapper>

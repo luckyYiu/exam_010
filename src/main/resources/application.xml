@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--扫描资源文件-->
+    <context:property-placeholder location="classpath:db.properties,classpath:redis-config.properties"/>
+    <!--开启注解-->
+    <context:component-scan base-package="com.qhit.mapper"/>
+    <context:component-scan base-package="com.qhit.service"/>
+    <context:component-scan base-package="com.qhit.realm"/>
+    <!--引入mybatis相关配置-->
+    <import resource="classpath:mybatis/mybatis-config.xml"/>
+    <!--引入redis相关配置-->
+    <import resource="classpath:redis/redis-config.xml"/>
+    <!--引入shiro相关配置-->
+    <import resource="classpath:shiro/shiro-config.xml"/>
+
+    <bean id="gson" class="com.google.gson.Gson"/>
+    <bean id="examChoose" class="com.qhit.pojo.ExamChooseInfo"/>
+
+    <bean id="ems" class="com.qhit.pojo.ExamSubjectMiddleInfo"/>
+    <bean id="examPaper" class="com.qhit.pojo.ExamPaperInfo"/>
+    <bean id="subject" class="com.qhit.pojo.SubjectInfo"/>
+    <bean id="course" class="com.qhit.pojo.CourseInfo"/>
+    <bean id="grade" class="com.qhit.pojo.GradeInfo"/>
+    <bean id="classInfo" class="com.qhit.pojo.ClassInfo"/>
+    <bean id="student" class="com.qhit.pojo.StudentInfo"/>
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="resolveLazily" value="true" />
+    </bean>
+
+
+
+</beans>

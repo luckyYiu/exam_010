@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.ExamPaperInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.ExamPaperInfo" >
+    <id column="examPaperId" property="examPaperId" jdbcType="INTEGER" />
+    <result column="examPaperName" property="examPaperName" jdbcType="VARCHAR" />
+    <result column="subjectNum" property="subjectNum" jdbcType="INTEGER" />
+    <result column="examPaperTime" property="examPaperTime" jdbcType="INTEGER" />
+    <result column="examPaperScore" property="examPaperScore" jdbcType="INTEGER" />
+    <result column="gradeId" property="gradeId" jdbcType="INTEGER" />
+    <result column="division" property="division" jdbcType="INTEGER" />
+    <result column="examPaperEasy" property="examPaperEasy" jdbcType="INTEGER" />
+    <!-- 对应年级 -->
+    <association property="grade" javaType="com.qhit.pojo.GradeInfo">
+      <id column="gradeId" property="gradeId"/>
+      <result column="gradeName" property="gradeName"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    examPaperId, examPaperName, subjectNum, examPaperTime, examPaperScore, gradeId, division, 
+    examPaperEasy
+  </sql>
+  <!--获取试卷数据总量-->
+  <select id="getExamPaperTotal" resultType="java.lang.Integer">
+    select count(examPaperId) from exampaperinfo
+  </select>
+  <!--查询所有试卷-->
+  <select id="getExamPaper" parameterType="com.qhit.pojo.ExamPaperInfo" resultMap="BaseResultMap">
+    select a.*,b.gradeName FROM exampaperinfo a INNER
+    JOIN gradeinfo b ON a.gradeId=b.gradeId
+    <where>
+      <if test="examPaper != null">
+        <if test="grade != null">
+          a.gradeId=#{grade.gradeId}
+        </if>
+      </if>
+    </where>
+  </select>
+  <!--通过试卷编号获取试卷信息-->
+  <select id="getExamPaperById" parameterType="int" resultMap="BaseResultMap">
+    SELECT a.*,b.gradeName FROM exampaperinfo a INNER
+    JOIN gradeinfo b ON a.gradeId=b.gradeId
+    WHERE examPaperId=#{examPaperId}
+  </select>
+  <!--添加试卷-->
+  <insert id="insertExamPaper" parameterType="com.qhit.pojo.ExamPaperInfo" useGeneratedKeys="true" keyProperty="examPaperId">
+    INSERT INTO exampaperinfo VALUES(NULL, #{examPaperName}, #{subjectNum}, #{examPaperTime}, #{examPaperScore}, #{gradeId}, #{division}, #{examPaperEasy})
+  </insert>
+  <!--修改试卷-->
+  <update id="updateExamPaper" parameterType="com.qhit.pojo.ExamPaperInfo">
+    UPDATE exampaperinfo SET
+    examPaperName=#{examPaperName}, subjectNum=#{subjectNum}, examPaperTime=#{examPaperTime},
+    examPaperScore=#{examPaperScore}, division=#{division}, examPaperEasy=#{examPaperEasy}, gradeId=#{gradeId}
+    WHERE examPaperId=#{examPaperId}
+  </update>
+  <!--删除试卷-->
+  <delete id="deleteExamPaper" parameterType="int">
+    DELETE FROM exampaperinfo WHERE examPaperId=#{examPaperId}
+  </delete>
+
+  <select id="getExamPapersClear" resultMap="BaseResultMap">
+    SELECT a.*,b.gradeName FROM exampaperinfo a INNER
+    JOIN gradeinfo b ON a.gradeId=b.gradeId
+  </select>
+  <!-- 修改试卷试题总量 -->
+  <update id="isUpdateExamPaperSubjects" parameterType="java.util.Map">
+    UPDATE exampaperinfo SET subjectNum=subjectNum+#{subjectNum}
+    WHERE examPaperId=#{examPaperId}
+  </update>
+  <!-- 修改试卷总分 -->
+  <update id="isUpdateExamPaperScore" parameterType="java.util.Map">
+    UPDATE exampaperinfo SET examPaperScore=examPaperScore+#{score}
+    WHERE examPaperId=#{examPaperId}
+  </update>
+  <!--修改试卷中的试题数量和分数-->
+  <update id="updateExamPaperSubNumAndScore" parameterType="int">
+    UPDATE exampaperinfo SET subjectnum=#{1},exampaperscore=#{2} WHERE exampaperid=#{0}
+  </update>
+  <!--根据试卷编号查询该试卷中的试题编号-->
+  <select id="getSubjectIdByExamPaperId" resultType="int" parameterType="int">
+    SELECT subjectid FROM examsubjectmiddleinfo WHERE exampaperid=#{0}
+  </select>
+  <select id="getOneExamPaperInfoById" resultType="com.qhit.pojo.ExamPaperInfo">
+    select * from exampaperinfo where examPaperId=#{0}
+  </select>
+
+  <update id="upadteSubjects" parameterType="java.util.Map">
+    UPDATE exampaperinfo SET subjectNum=subjectNum+#{subjectnum}
+    WHERE examPaperId=#{exampaperid}
+  </update>
+
+  <update id="updateScore" parameterType="java.util.Map" >
+    UPDATE exampaperinfo SET examPaperScore=examPaperScore+#{score}
+    WHERE examPaperId=#{exampaperid}
+  </update>
+  <insert id="insertExamParerLite" parameterType="com.qhit.pojo.ExamPaperInfo">
+    insert into exampaperinfo(examPaperName,examPaperEasy,examPaperTime,division,gradeId,subjectNum,examPaperScore) values
+    (#{examPaperName},#{examPaperEasy},#{examPaperTime},#{division},#{gradeId},0,0)
+  </insert>
+
+  <select id="selectExamParerIdByName" parameterType="String" resultType="com.qhit.pojo.ExamPaperInfo">
+    select examPaperId from exampaperinfo where examPaperName=#{0}
+  </select>
+</mapper>

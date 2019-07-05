@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.CourseInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.CourseInfo" >
+    <id column="courseId" property="courseId" jdbcType="INTEGER" />
+    <result column="courseName" property="courseName" jdbcType="VARCHAR" />
+    <result column="division" property="division" jdbcType="INTEGER" />
+    <association property="grade" javaType="com.qhit.pojo.GradeInfo">
+      <id column="gradeId" property="gradeId"/>
+      <result column="gradeName" property="gradeName"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    courseId, courseName, division, gradeId
+  </sql>
+
+  <select id="getCourseList" parameterType="com.qhit.pojo.CourseInfo" resultMap="BaseResultMap">
+    SELECT * FROM courseinfo a
+    INNER JOIN gradeinfo b ON a.gradeId=b.gradeId
+    <where>
+      <if test="grade != null">
+        <if test="grade.gradeId != null">
+          gradeId=#{grade.gradeId}
+        </if>
+      </if>
+      <if test="division != null">
+        AND division=#{division}
+      </if>
+    </where>
+    ORDER BY courseId DESC
+  </select>
+  <!-- 添加学科 -->
+  <insert id="insertCourse" parameterType="com.qhit.pojo.CourseInfo">
+    insert into courseinfo VALUES(NULL, #{courseName}, #{division}, #{gradeId})
+  </insert>
+
+  <!-- 删除学科 -->
+  <delete id="deleteCourse" parameterType="int">
+    DELETE FROM courseinfo where courseId=#{courseId}
+  </delete>
+
+  <!-- 根据编号获取 -->
+  <select id="getCourseById" parameterType="int" resultMap="BaseResultMap">
+    SELECT * FROM courseinfo a
+    INNER JOIN gradeinfo b ON a.gradeId=b.gradeId
+    WHERE courseId=#{courseId}
+  </select>
+
+  <!-- 修改学科 -->
+  <update id="updateCourse" parameterType="com.qhit.pojo.CourseInfo">
+    UPDATE courseinfo SET courseName=#{courseName}, division=#{division}, gradeId=#{gradeId} WHERE courseId=#{courseId}
+  </update>
+  <!--根据分科情况查询科目-->
+  <select id="getManyCourseByDivision" resultType="com.qhit.pojo.CourseInfo" parameterType="int">
+    SELECT * FROM courseinfo WHERE division=#{0}
+  </select>
+</mapper>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.ExamHistoryInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.ExamHistoryInfo" >
+    <id column="historyId" property="historyId" jdbcType="INTEGER" />
+    <result column="studentId" property="studentId" jdbcType="INTEGER" />
+    <result column="examPaperId" property="examPaperId" jdbcType="INTEGER" />
+    <result column="examScore" property="examScore" jdbcType="INTEGER" />
+    <association property="examPaperInfo" javaType="com.qhit.pojo.ExamPaperInfo">
+      <id column="examPaperId" property="examPaperId"/>
+      <result column="examPaperName" property="examPaperName"/>
+      <result column="examPaperScore" property="examPaperScore"/>
+      <result column="subjectNum" property="subjectNum"/>
+      <result column="examPaperTime" property="examPaperTime"/>
+    </association>
+    <association property="studentInfo" javaType="com.qhit.pojo.StudentInfo">
+      <id column="studentId" property="studentId"/>
+      <result column="studentName" property="studentName"/>
+    </association>
+    <association property="examPlanInfo" javaType="com.qhit.pojo.ExamPlanInfo">
+      <id column="examPlanId" property="examPlanId"/>
+      <result column="beginTime" property="beginTime"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    historyId, studentId, examPaperId, examScore
+  </sql>
+
+  <!-- 查询考试历史信息，针对前台学生查询 -->
+  <select id="getExamHistoryToStudent" parameterType="int" resultMap="BaseResultMap">
+    SELECT
+    a.historyId,a.examScore,b.examPaperId,b.examPaperName,b.examPaperScore,b.subjectNum,c.beginTime
+    FROM ExamHistoryInfo a
+    LEFT JOIN examPaperInfo b ON a.examPaperId=b.exampaperId
+    LEFT JOIN examPlanInfo c ON b.examPaperId=c.examPaperId
+    WHERE studentId=#{studentId}
+  </select>
+
+
+  <!-- 新增历史记录 -->
+  <insert id="isAddExamHistory" parameterType="java.util.Map">
+    INSERT INTO examhistoryinfo VALUES(NULL, #{studentId}, #{examPaperId}, #{examScore});
+  </insert>
+
+  <select id="getHistoryInfoWithIds" parameterType="java.util.Map" resultType="int">
+    SELECT COUNT(*) FROM examhistoryinfo WHERE studentId=#{studentId} AND examPaperId=#{examPaperId}
+  </select>
+
+  <!-- 查询考试历史信息，针对后台教师查询 -->
+  <select id="getExamHistoryToTeacher" resultMap="BaseResultMap">
+    SELECT
+    a.historyId,a.examScore,b.examPaperId,b.examPaperName,b.examPaperScore,b.subjectNum,d.studentId,d.studentName
+    FROM ExamHistoryInfo a
+    INNER JOIN exampaperinfo b ON a.examPaperId=b.exampaperId
+    LEFT JOIN studentinfo d ON a.studentId=d.studentId;
+  </select>
+  <select id="getHitorysNumByExamIdAndStuId" parameterType="int" resultType="int">
+    SELECT COUNT(*) FROM examhistoryinfo WHERE examPaperId=#{examPaperId} AND studentId=#{studentId}
+  </select>
+</mapper>

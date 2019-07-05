@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--配置安全管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="authenticator" ref="authenticator"/>
+        <property name="realms">
+            <list>
+                <ref bean="TeacherRealm"/>
+                <ref bean="StudentRealm"/>
+            </list>
+        </property>
+    </bean>
+    <!--认证器-->
+    <bean id="authenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+        <property name="realms">
+            <list>
+                <ref bean="TeacherRealm"/>
+                <ref bean="StudentRealm"/>
+            </list>
+        </property>
+    </bean>
+    <!--配置自定义的realm-->
+    <bean id="TeacherRealm" class="com.qhit.realm.TeacherInfoRealm">
+        <property name="TeacherInfoMapper" ref="teacherInfoMapper"/>
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+    <bean id="StudentRealm" class="com.qhit.realm.StudentInfoRealm">
+        <property name="StudentInfoMapper" ref="studentInfoMapper"/>
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+    <!--加密-->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashIterations" value="1024"/>
+        <property name="hashAlgorithmName" value="MD5"/>
+    </bean>
+    <!--配置缓存管理器-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:shiro/ehcache.xml"/>
+    </bean>
+    <!--有关shiro生命周期的配置-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!--有关注解的配置--><!--开启注解-->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+    <!--web远程调用 和网络相关的-->
+    <bean id="secureRemoteInvocationExecutor" class="org.apache.shiro.spring.remoting.SecureRemoteInvocationExecutor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <bean id="shiro" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="login.jsp"/>
+        <property name="successUrl" value="success.jsp"/>
+        <property name="unauthorizedUrl" value="unauthor.jsp"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /** anon
+            </value>
+        </property>
+    </bean>
+
+    <aop:config proxy-target-class="true"/>
+
+</beans>

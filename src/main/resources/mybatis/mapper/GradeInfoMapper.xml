@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.GradeInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.GradeInfo" >
+    <id column="gradeId" property="gradeId" jdbcType="INTEGER" />
+    <result column="gradeName" property="gradeName" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    gradeId, gradeName
+  </sql>
+  <select id="getGradeById" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from gradeinfo
+    where gradeId = #{gradeId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteGrade" parameterType="java.lang.Integer" >
+    delete from gradeinfo
+    where gradeId = #{gradeId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insertGrade" parameterType="com.qhit.pojo.GradeInfo" >
+    insert into gradeinfo(gradeName)
+    values (#{gradeName,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qhit.pojo.GradeInfo" >
+    insert into gradeinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="gradeId != null" >
+        gradeId,
+      </if>
+      <if test="gradeName != null" >
+        gradeName,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="gradeId != null" >
+        #{gradeId,jdbcType=INTEGER},
+      </if>
+      <if test="gradeName != null" >
+        #{gradeName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qhit.pojo.GradeInfo" >
+    update gradeinfo
+    <set >
+      <if test="gradeName != null" >
+        gradeName = #{gradeName,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where gradeId = #{gradeId,jdbcType=INTEGER}
+  </update>
+  <update id="updateGrade" parameterType="com.qhit.pojo.GradeInfo" >
+    update gradeinfo
+    set gradeName = #{gradeName,jdbcType=VARCHAR}
+    where gradeId = #{gradeId,jdbcType=INTEGER}
+  </update>
+
+  <select id="getGrade" parameterType="map" resultType="com.qhit.pojo.GradeInfo">
+    select  <include refid="Base_Column_List"/> from gradeinfo
+    <where>
+      <if test="gradeId !=null and gradeId != ''">
+        and gradeId = #{gradeId,jdbcType=INTEGER}
+      </if>
+      <if test="gradeName !=null and gradeName != ''">
+        and gradeName = #{gradeName,jdbcType=VARCHAR}
+      </if>
+    </where>
+  </select>
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.TeacherInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.TeacherInfo" >
+    <id column="teacherId" property="teacherId" jdbcType="INTEGER" />
+    <result column="teacherName" property="teacherName" jdbcType="VARCHAR" />
+    <result column="teacherAccount" property="teacherAccount" jdbcType="VARCHAR" />
+    <result column="teacherPwd" property="teacherPwd" jdbcType="VARCHAR" />
+    <result column="adminPower" property="adminPower" jdbcType="INTEGER" />
+    <result column="isWork" property="isWork" jdbcType="INTEGER" />
+    <result column="salt" property="salt" jdbcType="VARCHAR" />
+    <association property="classInfo" javaType="com.qhit.pojo.ClassInfo">
+      <id column="classId" property="classId"/>
+      <result column="className" property="className"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    teacherId, teacherName, teacherAccount, teacherPwd, adminPower, isWork, salt
+  </sql>
+
+  <!--根据教师名 获取教师信息-->
+  <select id="getTeacherByName" resultType="com.qhit.pojo.TeacherInfo">
+    select <include refid="Base_Column_List"></include>
+    from teacherinfo where teacherAccount = #{0}
+  </select>
+  <!--获取教师数据总量-->
+  <select id="getTeacherTotal" resultType="java.lang.Integer">
+    select COUNT(teacherId) from teacherinfo
+  </select>
+  <!--查询所有教师-->
+  <select id="getTeacherList" parameterType="map" resultType="map">
+    select a.*,b.classId,b.className FROM teacherinfo a
+    LEFT JOIN classinfo b ON a.teacherId=b.teacherId
+    <if test="end != null and end != ''">
+      limit #{start},#{end}
+    </if>
+    <where>
+      <if test="isWork != null">
+        isWork=#{isWork}
+      </if>
+    </where>
+  </select>
+  <!--根据教师编号获取教师信息-->
+  <select id="getTeacherById" parameterType="java.lang.Integer" resultType="com.qhit.pojo.TeacherInfo">
+    SELECT * FROM teacherinfo WHERE teacherId=#{teacherId}
+  </select>
+  <!--修改教师信息-->
+  <update id="updateTeacher" parameterType="com.qhit.pojo.TeacherInfo">
+    UPDATE teacherinfo SET teacherName=#{teacherName}, teacherAccount=#{teacherAccount},
+    teacherPwd=#{teacherPwd}, adminPower=#{adminPower}
+    WHERE teacherId=#{teacherId}
+  </update>
+  <!--添加教师信息-->
+  <insert id="insertTeacher" parameterType="com.qhit.pojo.TeacherInfo">
+    INSERT INTO teacherinfo
+    VALUES(NULL, #{teacherName}, #{teacherAccount}, #{teacherPwd}, #{adminPower}, 0,#{salt})
+  </insert>
+  <!--删除教师信息-->
+  <delete id="deleteTeacher" parameterType="java.lang.Integer">
+    DELETE FROM teacherinfo WHERE teacherId=#{teacherId}
+  </delete>
+  <!-- 修改教师班主任状态 -->
+  <update id="updateTeacherIsWork" parameterType="com.qhit.pojo.TeacherInfo">
+    UPDATE teacherinfo SET isWork=#{isWork} WHERE teacherId=#{teacherId}
+  </update>
+  <!-- 根据教师账户获取教师信息 -->
+  <select id="getTeacherByAccount" parameterType="string" resultType="com.qhit.pojo.TeacherInfo">
+    SELECT teacherId, teacherName, teacherAccount, teacherPwd, adminPower FROM teacherinfo
+    WHERE teacherAccount=#{teacherAccount}
+  </select>
+  <!--获取教师数据-->
+  <select id="getCount" resultType="java.lang.Integer">
+    select COUNT(0) from teacherinfo
+  </select>
+</mapper>

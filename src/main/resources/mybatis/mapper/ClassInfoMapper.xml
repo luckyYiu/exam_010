@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.ClassInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.ClassInfo" >
+    <id column="classId" property="classId" jdbcType="INTEGER" />
+    <result column="className" property="className" jdbcType="VARCHAR" />
+    <result column="gradeId" property="gradeId" jdbcType="INTEGER" />
+    <result column="teacherId" property="teacherId" jdbcType="INTEGER" />
+    <!-- 年级 -->
+    <association property="grade" javaType="com.qhit.pojo.GradeInfo">
+      <id column="gradeId" property="gradeId"/>
+      <result column="gradeName" property="gradeName"/>
+    </association>
+    <!-- 班主任 -->
+    <association property="teacher" javaType="com.qhit.pojo.TeacherInfo">
+      <id column="teacherId" property="teacherId"/>
+      <result column="teacherName" property="teacherName"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    classId, className, gradeId, teacherId
+  </sql>
+
+  <!--获取所有班级-->
+  <select id="getClassList" parameterType="com.qhit.pojo.ClassInfo" resultMap="BaseResultMap">
+    SELECT * FROM classinfo a
+    LEFT JOIN teacherinfo b ON a.teacherId=b.teacherId
+    LEFT JOIN gradeinfo c ON a.gradeId=c.gradeId
+    <where>
+      <!-- 需要先判断grade是否为空
+          如果不判断，且 grade 为空，那么判断 grade.gradeId 就会报错
+       -->
+      <if test="grade != null">
+        <if test="grade.gradeId != null">
+          a.gradeId=#{grade.gradeId}
+        </if>
+      </if>
+      <if test="classId != null">
+        AND classId=#{classId}
+      </if>
+      <if test="className != null and className != ''">
+        AND className LIKE '%${className}%'
+      </if>
+    </where>
+  </select>
+  <!--根据编号获取班级-->
+  <select id="getClassById" resultMap="BaseResultMap" parameterType="int" >
+    select 
+    <include refid="Base_Column_List" />
+    from classinfo
+    where classId = #{classId,jdbcType=INTEGER}
+  </select>
+  <!--删除班级-->
+  <delete id="deleteClass" parameterType="int" >
+    delete from classinfo
+    where classId = #{classId}
+  </delete>
+  <!--添加班级-->
+  <insert id="insertClass" parameterType="com.qhit.pojo.ClassInfo" >
+    insert into classinfo (classId, className, gradeId, 
+      teacherId)
+    values (#{classId}, #{className}, #{gradeId},
+      #{teacherId})
+  </insert>
+  <!--修改班级-->
+  <update id="updateClass" parameterType="com.qhit.pojo.ClassInfo" >
+    update classinfo
+    set className = #{className},
+      gradeId = #{gradeId},
+      teacherId = #{teacherId}
+    where classId = #{classId}
+  </update>
+  <!--通过年级编号获取班级-->
+  <select id="getClassInfoByGradeId" resultType="com.qhit.pojo.ClassInfo" parameterType="String">
+    select
+    <include refid="Base_Column_List" />
+    from classinfo
+    where  gradeId = #{0}
+  </select>
+
+  <select id="getCountClassByGradeId" resultType="int" parameterType="int">
+    select count(*) from classinfo where gradeId=#{gradeId}
+  </select>
+
+  <select id="getOneClassInfoByCid" resultType="com.qhit.pojo.ClassInfo" parameterType="int">
+    SELECT
+    c.classId,
+    c.className,
+    g.gradeId,
+    g.gradeName,
+    t.teacherId,
+    t.teacherName
+    FROM
+    classinfo c,
+    gradeinfo g,
+    teacherinfo t
+    WHERE c.teacherId = t.teacherId
+    AND c.gradeId = g.gradeId AND c.classId=#{classId}
+  </select>
+  <!-- 根据当前班级班主任编号获取班级信息 -->
+  <select id="getClassByTeacherId" parameterType="int" resultType="com.qhit.pojo.ClassInfo">
+    SELECT <include refid="Base_Column_List" />
+    FROM ClassInfo where teacherId=#{teacherId}
+  </select>
+</mapper>

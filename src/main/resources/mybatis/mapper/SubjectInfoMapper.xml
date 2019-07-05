@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.SubjectInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.SubjectInfo" >
+    <id column="subjectId" property="subjectId" jdbcType="INTEGER" />
+    <result column="subjectName" property="subjectName" jdbcType="VARCHAR" />
+    <result column="optionA" property="optionA" jdbcType="VARCHAR" />
+    <result column="optionB" property="optionB" jdbcType="VARCHAR" />
+    <result column="optionC" property="optionC" jdbcType="VARCHAR" />
+    <result column="optionD" property="optionD" jdbcType="VARCHAR" />
+    <result column="rightResult" property="rightResult" jdbcType="VARCHAR" />
+    <result column="subjectScore" property="subjectScore" jdbcType="INTEGER" />
+    <result column="subjectType" property="subjectType" jdbcType="INTEGER" />
+    <result column="courseId" property="courseId" jdbcType="INTEGER" />
+    <result column="gradeId" property="gradeId" jdbcType="INTEGER" />
+    <result column="subjectEasy" property="subjectEasy" jdbcType="INTEGER" />
+    <result column="division" property="division" jdbcType="INTEGER" />
+    <!-- 科目 -->
+    <association property="course" javaType="com.qhit.pojo.CourseInfo">
+      <id column="courseId" property="courseId"/>
+      <result column="courseName" property="courseName"/>
+    </association>
+    <!-- 年级 -->
+    <association property="grade" javaType="com.qhit.pojo.GradeInfo">
+      <id column="gradeId" property="gradeId"/>
+      <result column="gradeName" property="gradeName"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    subjectId, subjectName, optionA, optionB, optionC, optionD, rightResult, subjectScore, 
+    subjectType, courseId, gradeId, subjectEasy, division
+  </sql>
+  <sql id="querySubjectSql">
+    SELECT a.*, b.courseName, c.gradeName FROM subjectinfo a
+    LEFT JOIN courseinfo b ON a.courseId=b.courseId
+    LEFT JOIN gradeinfo c ON a.gradeId=c.gradeId
+  </sql>
+
+  <!--获取试题总数-->
+  <select id="getSubjectTotal" resultType="java.lang.Integer">
+    select count(subjectId) from subjectinfo
+  </select>
+  <!--查询所有试题-->
+  <select id="getSubjectList" parameterType="map" resultMap="BaseResultMap">
+    select a.*, b.courseName, c.gradeName FROM subjectinfo a
+		LEFT JOIN courseinfo b ON a.courseId=b.courseId
+		LEFT JOIN gradeinfo c ON a.gradeId=c.gradeId
+    <if test="end != null and end != ''">
+      limit #{start},#{end}
+    </if>
+    <where>
+      <if test="subject != null">
+        <if test="subject.subjectId != null">
+          subjectId=#{subjectId}
+        </if>
+        <if test="subject.course != null">
+          OR a.courseId=#{subject.course.courseId}
+        </if>
+        <if test="subject.grade != null">
+          OR a.gradeId=#{subject.grade.gradeId}
+        </if>
+      </if>
+    </where>
+  </select>
+  <!--导入Excel-->
+  <insert id="addAll" parameterType="java.util.List">
+    insert into subjectinfo (subjectname, optiona,
+    optionb, optionc, optiond,
+    rightresult, subjectscore, subjecttype,
+    subjecteasy) values
+    <foreach collection="list" open="" close="" item="arrlist" separator=",">
+      (#{arrlist.subjectName,jdbcType=VARCHAR}, #{arrlist.optionA,jdbcType=VARCHAR},
+      #{arrlist.optionB,jdbcType=VARCHAR}, #{arrlist.optionC,jdbcType=VARCHAR}, #{arrlist.optionD,jdbcType=VARCHAR},
+      #{arrlist.rightResult,jdbcType=VARCHAR}, #{arrlist.subjectScore,jdbcType=INTEGER}, #{arrlist.subjectType,jdbcType=INTEGER},
+      #{arrlist.subjectEasy,jdbcType=INTEGER})
+    </foreach>
+  </insert>
+  <!--获取试题数据-->
+  <select id="getCount" resultType="java.lang.Integer">
+    select COUNT(0) from subjectinfo
+  </select>
+  <!--添加试题-->
+  <insert id="insertSubject" parameterType="com.qhit.pojo.SubjectInfo" useGeneratedKeys="true" keyProperty="subjectId">
+    INSERT INTO subjectinfo VALUES
+    (NULL, #{subjectName}, #{optionA}, #{optionB}, #{optionC}, #{optionD}, #{rightResult}, #{subjectScore}, #{subjectType}, #{courseId}, #{gradeId}, #{subjectEasy}, #{division})
+  </insert>
+  <!--通过试题编号获取试题信息-->
+  <select id="getSubjectById" parameterType="int" resultMap="BaseResultMap">
+    <include refid="querySubjectSql"></include>
+    WHERE subjectId=#{subjectId}
+  </select>
+  <!--修改试题-->
+  <update id="updateSubject" parameterType="com.qhit.pojo.SubjectInfo">
+    UPDATE subjectinfo SET
+    subjectName=#{subjectName}, optionA=#{optionA}, optionB=#{optionB}, optionC=#{optionC}, optionD=#{optionD}, rightResult=#{rightResult}, subjectScore=#{subjectScore}, subjectType=#{subjectType}, courseId=#{courseId}, gradeId=#{gradeId}, subjectEasy=#{subjectEasy}, division=#{division}
+    WHERE subjectId=#{subjectId}
+  </update>
+  <!--删除试题-->
+  <delete id="deleteSubject" parameterType="int">
+    DELETE FROM subjectinfo WHERE subjectId=#{subjectId}
+  </delete>
+  <!--批量添加试题-->
+  <insert id="addSubjects" parameterType="com.qhit.pojo.SubjectInfo">
+    INSERT INTO subjectinfo VALUES
+    <if test="subjects != null">
+      <foreach collection="subjects" item="subject" close=";" separator=",">
+        (NULL, #{subject.subjectName}, #{subject.optionA}, #{subject.optionB}, #{subject.optionC}, #{subject.optionD}, #{subject.rightResult}, #{subject.subjectScore}, #{subject.subjectType}, #{subject.courseId}, #{subject.gradeId}, #{subject.subjectEasy}, #{subject.division})
+      </foreach>
+    </if>
+  </insert>
+
+  <select id="getSubByExamPaperId" resultType="com.qhit.pojo.SubjectInfo" parameterType="int">
+    SELECT a.esmId, a.examPaperId, b.examPaperName, b.examPaperTime, c.*, d.courseName, e.gradeName
+    FROM ExamSubjectMiddleInfo a
+    INNER JOIN ExamPaperInfo b ON a.examPaperId=b.examPaperId
+    INNER JOIN SubjectInfo c ON a.subjectId=c.subjectId
+    INNER JOIN CourseInfo d ON c.courseId=d.courseId
+    INNER JOIN GradeInfo e ON c.gradeId=e.gradeId  WHERE a.examPaperId=#{0}
+  </select>
+
+  <insert id="insertSubjectInfo" parameterType="com.qhit.pojo.SubjectInfo" useGeneratedKeys="true" keyProperty="subjectId">
+    INSERT INTO subjectinfo
+    VALUES (DEFAULT,
+    #{subjectName},
+    #{optionA},
+    #{optionB},
+    #{optionC},
+    #{optionD},
+    #{rightResult},
+    #{subjectScore},
+    #{subjectType},
+    #{courseId},
+    #{gradeId},
+    #{subjectEasy},
+    #{division})
+  </insert>
+
+  <insert id="insertManySubjectInfo" parameterType="java.util.List">
+    INSERT INTO subjectinfo
+    VALUES
+    <foreach collection="list" index="index" item="sub" separator=",">
+      (DEFAULT,
+      #{sub.subjectName},
+      #{sub.optionA},
+      #{sub.optionB},
+      #{sub.optionC},
+      #{sub.optionD},
+      #{sub.rightResult},
+      #{sub.subjectScore},
+      #{sub.subjectType},
+      #{sub.courseId},
+      #{sub.gradeId},
+      #{sub.subjectEasy},
+      #{sub.division})
+    </foreach>
+  </insert>
+
+  <select id="getManySubjectInfo" parameterType="com.qhit.pojo.SubjectInfo" resultType="com.qhit.pojo.SubjectInfo">
+    SELECT * FROM subjectnfo where gradeId=#{gradeId} and division=#{division} and subjectEasy=#{subjectEasy}
+    <if test="courseId!=null and courseId!=''">
+      and courseId=#{courseId}
+    </if>
+  </select>
+
+  <!-- 获取试题集合 -->
+  <select id="getSubjects" resultType="java.lang.Integer" parameterType="com.qhit.pojo.SubjectInfo">
+    SELECT subjectId from subjectinfo
+    <where>
+      <if test="courseId!=null">
+        and courseId=#{courseId,jdbcType=INTEGER}
+      </if>
+      <if test="gradeId!=null">
+        and gradeId= #{gradeId,jdbcType=INTEGER}
+      </if>
+      <if test="subjectEasy!=null">
+        and subjectEasy=#{subjectEasy,jdbcType=INTEGER}
+      </if>
+    </where>
+  </select>
+
+  <select id="getById" resultType="Integer" parameterType="com.qhit.pojo.SubjectInfo">
+    SELECT subjectScore from subjectinfo where subjectId=#{0}
+  </select>
+
+  <select id="selectSubIdByName" parameterType="String" resultType="com.qhit.pojo.SubjectInfo">
+    select subjectId,subjectScore from subjectinfo where subjectName=#{0}
+  </select>
+</mapper>

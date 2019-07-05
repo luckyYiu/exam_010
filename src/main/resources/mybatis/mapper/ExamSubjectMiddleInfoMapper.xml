@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qhit.mapper.ExamSubjectMiddleInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.qhit.pojo.ExamSubjectMiddleInfo" >
+    <id column="esmId" property="esmid" jdbcType="INTEGER" />
+    <result column="examPaperId" property="exampaperid" jdbcType="INTEGER" />
+    <result column="subjectId" property="subjectid" jdbcType="INTEGER" />
+  </resultMap>
+  <resultMap id="getSubExam" type="com.qhit.pojo.ExamSubjectMiddleInfo">
+    <id column="esmId" property="esmId"/>
+    <association property="examPaper" javaType="com.qhit.pojo.ExamPaperInfo">
+      <id column="examPaperId" property="examPaperId"/>
+    </association>
+    <association property="subject" javaType="com.qhit.pojo.SubjectInfo">
+      <id column="subjectId" property="subjectId"/>
+      <result column="subjectName" property="subjectName"/>
+      <result column="optionA" property="optionA"/>
+      <result column="optionB" property="optionB"/>
+      <result column="optionC" property="optionC"/>
+      <result column="optionD" property="optionD"/>
+      <result column="subjectScore" property="subjectScore"/>
+      <result column="subjectEasy" property="subjectEasy"/>
+    </association>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    esmId, examPaperId, subjectId
+  </sql>
+
+  <!--查看试题-->
+  <select id="getSubExamPar" resultMap="getSubExam" parameterType="int">
+    select * from exampaperinfo ep,subjectinfo sj,examsubjectmiddleinfo es
+    where ep.examPaperId=es.examPaperId and sj.subjectId=es.subjectId and ep.examPaperId=#{0}
+  </select>
+  <!--试卷中添加试题-->
+  <insert id="isAddESM" parameterType="java.util.Map">
+    INSERT INTO ExamSubjectMiddleInfo VALUES
+    <if test="examPaperId != null">
+      <if test="subjectIds != null">
+        <foreach collection="subjectIds" item="subject" close=";" separator=",">
+          (NULL, #{examPaperId}, #{subject.subjectId})
+        </foreach>
+      </if>
+    </if>
+  </insert>
+  <!--移除试卷中试题-->
+  <delete id="removeSubjectWithExamPaper" parameterType="java.util.Map">
+    DELETE FROM ExamSubjectMiddleInfo
+    WHERE examPaperId=#{examPaperId} AND subjectId=#{subjectId}
+  </delete>
+  <!-- 根据试卷编号和试题编号进行查询 -->
+  <select id="getEsmByExamIdWithSubjectId" parameterType="com.qhit.pojo.ExamSubjectMiddleInfo" resultType="int">
+    SELECT esmId FROM ExamSubjectMiddleInfo
+    WHERE examPaperId=#{examPaperId} AND subjectId=#{subjectId}
+  </select>
+  <!--根据试卷ID查询已存在的试题-->
+  <select id="selectSubjectIdByExamParerId" parameterType="int" resultType="int">
+    select subjectId from examsubjectmiddleinfo where examPaperId=#{0}
+  </select>
+  <!--查询试卷总分-->
+  <select id="getSumScore" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+    select sum(s.subjectScore) from examsubjectmiddleinfo e,subjectinfo s where
+    e.subjectId=s.subjectId and e.examPaperId=#{0}
+  </select>
+
+  <insert id="insertSubIdExamId" parameterType="list">
+    insert into examsubjectmiddleinfo(examPaperId,subjectId) values
+    <foreach collection="list" item="arrlist" index="index" separator=",">
+      (#{arrlist.examPaperId},#{arrlist.subjectId})
+    </foreach>
+  </insert>
+</mapper>
